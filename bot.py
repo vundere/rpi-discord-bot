@@ -18,9 +18,31 @@ CONF_FILE = 'cfg/bot_config.json'
 
 
 HANJO = False  # Defaulting this to True is not that smart.
-startup_extensions = ["modules.lewd", "modules.memes", "modules.community", "modules.search", "modules.injokes"]
-cat_words = ['cat', 'cats', 'kitty', 'kitties', 'kitten', 'kittens']
-cat_reacts = ['nyaaa~', ":3", "(ↀДↀ)", "(๑ↀᆺↀ๑)✧", "ლ(=ↀωↀ=)ლ", "～((Φ◇Φ)‡", "(=^-ω-^=)", "(^･ω･^=)~"]
+startup_extensions = [
+    "modules.lewd",
+    "modules.memes",
+    "modules.community",
+    "modules.search",
+    "modules.injokes"
+]
+cat_words = [
+    'cat',
+    'cats',
+    'kitty',
+    'kitties',
+    'kitten',
+    'kittens'
+]
+cat_reacts = [
+    'nyaaa~',
+    ":3",
+    "(ↀДↀ)",
+    "(๑ↀᆺↀ๑)✧",
+    "ლ(=ↀωↀ=)ლ",
+    "～((Φ◇Φ)‡",
+    "(=^-ω-^=)",
+    "(^･ω･^=)~"
+]
 
 bun_bot = Bot(command_prefix="!bb.")
 
@@ -56,7 +78,7 @@ async def react_cats(message):
 
 
 async def wordcounter(message):
-    if str(message.author.id) == "133237258668081152":
+    if str(message.author.id) == "133237258668081152":  # checks for jenson
         if tools.find_word(message.content, ['rip']):
             with open(bun_bot.data_file, 'r+') as f:
                 data = json.load(f)
@@ -89,8 +111,8 @@ def end_logging(log):
 @bun_bot.event
 async def on_command(command, ctx):
     message = ctx.message
-    destination = '#{0.channel.name} ({0.server.name})'.format(message)
 
+    destination = '#{0.channel.name} ({0.server.name})'.format(message)
     log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(message, destination))
 
 
@@ -102,10 +124,11 @@ async def on_command_error(exception, context):
 
     if hasattr(context.command, "on_error"):
         return
-    destination = '#{0.channel.name} ({0.server.name})'.format(context.message)
 
+    destination = '#{0.channel.name} ({0.server.name})'.format(context.message)
     log.info('{0.timestamp}: {0.author.name} in {1}: Attempted to use invalid command {0.content}'
              .format(context.message, destination))
+
     print('Ignoring exception in command {}'.format(context.command), file=sys.stderr)
     traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
 
@@ -129,8 +152,8 @@ async def on_ready():
 
 @bun_bot.command(pass_context=True, hidden=True)
 async def fox(ctx):
-    user = ctx.message.author
-    if str(user) == 'aboxoffoxes#3582' or is_mommy(ctx):
+    user = ctx.message.author.id
+    if user == '133373976008327168' or is_mommy(ctx):  # checks for fox
         command_list = []
         list_marker = "```"
         result = ""
@@ -148,7 +171,7 @@ async def fox(ctx):
                                                     'Ex: !bb.xkcd 205')
 async def xkcd(no: int = None):
     if no:
-        url = "https://xkcd.com/"+str(no)
+        url = "https://xkcd.com/{}".format(no)
     else:
         url = requests.get("https://c.xkcd.com/random/comic").url
     return await bun_bot.say(url)

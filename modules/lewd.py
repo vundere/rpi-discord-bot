@@ -8,7 +8,7 @@ import re
 
 from lxml import html
 from discord.ext import commands
-from utils import lewd_channel, file_tools, tumblr_search, e621
+from utils import lewd_channel, file_tools, tumblr_search, e621  # TODO this can be cleaned up
 from random import randint
 from bot import is_mommy
 
@@ -118,10 +118,8 @@ class Lewd:
                     filename = url.split('/')[-1]
                     success = file_tools.stash(url, filename)
                     if success:
-                        yoinked += 1
                         print("Image yoinked")
                     else:
-                        yoinked += 1
                         print("Unable to yoink")
                 elif yoinked < n and message.attachments:
                     url = message.attachments[0]['url']
@@ -129,10 +127,9 @@ class Lewd:
                     success = file_tools.stash(url, filename)
                     if success:
                         print("Image yoinked")
-                        yoinked += 1
                     else:
                         print("Unable to yoink")
-                        yoinked += 1
+                yoinked += 1
 
     @commands.command(help='Tumblr search, NSFW results on', description='Searches Tumblr, NSFW results are on so '
                                                                          'it only works in lewd enabled channels.'

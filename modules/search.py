@@ -1,5 +1,4 @@
 import requests
-import json
 
 from utils import tools
 from discord.ext import commands
