@@ -27,3 +27,5 @@ def find_word(message, words):
 
 def find_member(bot, member_id: str):
     return discord.utils.get(bot.get_all_members(), id=member_id)
+
+# TODO merge tools.py and file_tools.py

@@ -13,11 +13,9 @@ from utils import file_tools, tools
 from discord.ext import commands
 from discord.ext.commands import Bot
 
-
 CONF_FILE = 'cfg/bot_config.json'
-
-
 HANJO = False  # Defaulting this to True is not that smart.
+
 startup_extensions = [
     "modules.lewd",
     "modules.memes",
@@ -59,6 +57,23 @@ def is_mommy(ctx):
     return str(ctx.message.author.id) == bun_bot.mommy
 
 
+def setup_logging():
+    discord_logger = logging.getLogger('discord')
+    discord_logger.setLevel(logging.CRITICAL)
+    log = logging.getLogger()
+    log.setLevel(logging.INFO)
+    handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
+    log.addHandler(handler)
+    return log
+
+
+def end_logging(log):
+    handlers = log.handlers[:]
+    for hdlr in handlers:
+        hdlr.close()
+        log.removeHandler(hdlr)
+
+
 async def react_with_hanzo(message, p):
     if message.channel.server.name == "Friend Team":
         hanzo = next((emoji for emoji in bun_bot.get_all_emojis() if emoji.name == 'hanzo'), None)
@@ -90,23 +105,6 @@ async def wordcounter(message):
                 f.truncate()
 
 
-def setup_logging():
-    discord_logger = logging.getLogger('discord')
-    discord_logger.setLevel(logging.CRITICAL)
-    log = logging.getLogger()
-    log.setLevel(logging.INFO)
-    handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
-    log.addHandler(handler)
-    return log
-
-
-def end_logging(log):
-    handlers = log.handlers[:]
-    for hdlr in handlers:
-        hdlr.close()
-        log.removeHandler(hdlr)
-
-
 @bun_bot.event
 async def on_command(command, ctx):
     message = ctx.message
@@ -117,7 +115,10 @@ async def on_command(command, ctx):
 
 @bun_bot.event
 async def on_command_error(exception, context):
-    # Modified error handler to include logging of location
+    """
+    Slightly modified error handler, to allow for logging of when and where
+    people try to use commands that don't exist.
+    """
     if bun_bot.extra_events.get('on_command_error', None):
         return
 
@@ -151,6 +152,9 @@ async def on_ready():
 
 @bun_bot.command(pass_context=True, hidden=True)
 async def fox(ctx):
+    """
+    This just PMs an unsorted list of every command the bot has, since many of them are hidden.
+    """
     user = ctx.message.author.id
     if user == '133373976008327168' or is_mommy(ctx):  # checks for fox
         command_list = []
@@ -179,6 +183,9 @@ async def xkcd(no: int = None):
 @bun_bot.command(hidden=True, pass_context=True)
 @commands.check(is_mommy)
 async def fullhanjo():
+    """
+    This just makes the bot react with hanzo to every message.
+    """
     global HANJO
     if HANJO:
         print("Easing up on the Hanjo...")
