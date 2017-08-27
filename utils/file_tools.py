@@ -2,7 +2,7 @@
 import requests
 import os
 import json
-from random import randint, randrange
+from random import choice
 from os import listdir
 from pathlib import Path
 
@@ -54,8 +54,11 @@ def stash(url, filename):
 
 
 def get_rand_mem():
-    all_files = listdir(IMG_FOLDER)
-    return "img/"+all_files[randint(0, (len(all_files)-1))]
+    all_files = []
+    for img in listdir(IMG_FOLDER):
+        if allowed_file(img):
+            all_files.append(img)
+    return "img/"+choice(all_files)
 
 
 def discord_filename_fix(filename):
@@ -70,7 +73,7 @@ def is_heresy(filename):
 def get_heresy():
     with open("static/lists/bloodlist.txt", "r") as n:
         acceptable_heresy = n.read().split("\n")
-    return acceptable_heresy[randrange(0, len(acceptable_heresy))]
+    return choice(acceptable_heresy)
 
 
 def get_watched():
@@ -80,7 +83,7 @@ def get_watched():
         for image in ow_image_folder:
             if allowed_file(image):
                 result.append(image)
-        return OW+result[randint(0, (len(result)-1))]
+        return OW+choice(result)
 
     def imgur():
         ow_image_folder = listdir(OW)
@@ -88,13 +91,13 @@ def get_watched():
         for image in ow_image_folder:
             if allowed_file(image):
                 result.append(image)
-        selected = result[randint(0, (len(result) - 1))]
+        selected = choice(result)
         return 'http://i.imgur.com/' + selected.rsplit(" - ")[1]
 
     def imgur_from_list():
         with open("static/lists/watchlist.txt", "r") as n:
             result = n.read().split("\n")
-        return result[randrange(0, len(result))]
+        return choice(result)
 
     return imgur_from_list()
 
@@ -129,7 +132,7 @@ def pomf_get():
     for action in bed:
         if allowed_file(action):
             things_to_do_on_bed.append(action)
-    return BED + things_to_do_on_bed[randint(0, (len(things_to_do_on_bed)-1))]
+    return BED + choice(things_to_do_on_bed)
 
 
 def init_korean():

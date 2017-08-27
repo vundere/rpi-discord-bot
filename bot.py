@@ -1,67 +1,41 @@
-"""Discord bot that does some things.
+"""
+Discord bot that does some things.
 """
 import json
-import re
 import traceback
 import requests
 import discord
 import logging
-
-from random import randint, randrange, random
-
 import sys
 
-from utils import file_tools, youtube
+from random import randint, random, choice
+from utils import file_tools, tools
 from discord.ext import commands
 from discord.ext.commands import Bot
-from lxml import html
 
 
-DATA_FILE = 'bot_data.json'
 CONF_FILE = 'cfg/bot_config.json'
-with open(CONF_FILE, 'r') as conf:
-    file = json.load(conf)
-    # loads token from file for security reasons
-    TOKEN = file["token"]
+
 
 HANJO = False  # Defaulting this to True is not that smart.
-startup_extensions = ["modules.lewd", "modules.memes", "modules.community"]
+startup_extensions = ["modules.lewd", "modules.memes", "modules.community", "modules.search", "modules.injokes"]
 cat_words = ['cat', 'cats', 'kitty', 'kitties', 'kitten', 'kittens']
 cat_reacts = ['nyaaa~', ":3", "(ↀДↀ)", "(๑ↀᆺↀ๑)✧", "ლ(=ↀωↀ=)ლ", "～((Φ◇Φ)‡", "(=^-ω-^=)", "(^･ω･^=)~"]
 
 bun_bot = Bot(command_prefix="!bb.")
-# TODO move utility functions to separate file, find way to init vars to keep hardcoded vars down, use env vars
+
+
+def init_vars():
+    with open(CONF_FILE, 'r') as conf:
+        file = json.load(conf)
+        bun_bot.token = file["token"]
+        bun_bot.yt_api_key = file["youtube_api_key"]
+        bun_bot.mommy = file["mommy"]
+        bun_bot.data_file = 'bot_data.json'
 
 
 def is_mommy(ctx):
-    return str(ctx.message.author) == 'vun#1688'
-
-
-def aooo_conform(query):
-    clean = query.replace(" ", "+")
-    clean = clean.replace("/", "%2F")
-    return clean
-
-
-def find_word(message, words):
-    """Looks for one of several words in a string.
-    Has not been tested for String instead of a List.
-    :param message: String, the string you want to look in.
-    :param words: List of words you want to look for.
-    :return: True if word is in the message, false if not
-    """
-
-    def finder(word):
-        return re.compile(r'\b({0})\b'.format(word), flags=re.IGNORECASE).search
-
-    for w in words:
-        if finder(w)(message):
-            return True
-    return False
-
-
-def find_member(self, member_id: str):
-    return discord.utils.get(self.get_all_members(), id=member_id)
+    return str(ctx.message.author.id) == bun_bot.mommy
 
 
 async def react_with_hanzo(message, p):
@@ -75,16 +49,16 @@ async def react_with_hanzo(message, p):
 
 
 async def react_cats(message):
-    has_cat_word = find_word(message.content, cat_words)
+    has_cat_word = tools.find_word(message.content, cat_words)
     if has_cat_word and randint(0, 10) < 2 and not message.author == bun_bot.user:
         log.info('{0.timestamp}: Cat react triggered in #{0.channel.name} ({0.server.name})'.format(message))
-        await bun_bot.send_message(message.channel, cat_reacts[randrange(len(cat_reacts))])
+        await bun_bot.send_message(message.channel, choice(cat_reacts))
 
 
 async def wordcounter(message):
     if str(message.author.id) == "133237258668081152":
-        if message.content == "Rip" or message.content == "rip":
-            with open(DATA_FILE, 'r+') as f:
+        if tools.find_word(message.content, ['rip']):
+            with open(bun_bot.data_file, 'r+') as f:
                 data = json.load(f)
                 if "rip" not in data:
                     data["rip"] = 1
@@ -169,18 +143,6 @@ async def fox(ctx):
         return await bun_bot.say("This is not for you. Go away.")
 
 
-@bun_bot.command(help='Correctly places blame.', pass_context=True,
-                 description='Pretty self-explanatory when you use it.')
-async def blame(ctx):
-    user = str(ctx.message.author)
-    if user == 'Jax Dasher#0377':
-        return await bun_bot.say("It's your fault, dingus!")
-    if user == 'vun#1688':
-        return await bun_bot.say("It's definitely not vun's fault.")
-    else:
-        return await bun_bot.say("It's all Jax' fault.")
-
-
 @bun_bot.command(help='Get XKCD comic', description='By itself fetches random xkcd comic. '
                                                     'Enter comic number as argument to fetch specific comic.'
                                                     'Ex: !bb.xkcd 205')
@@ -209,87 +171,9 @@ async def korean():
     master = file_tools.init_korean()
     nouns = master["nouns"]
     verbs = master["verbs"]
-    randnoun = nouns[randint(0, (len(nouns)-1))].capitalize()
-    randverb = verbs[randint(0, (len(verbs)-1))].capitalize()
+    randnoun = choice(nouns).capitalize()
+    randverb = choice(verbs).capitalize()
     return await bun_bot.say(randnoun+randverb)
-
-
-@bun_bot.command(help='For Jax', hidden=True)
-async def koreanwhy():
-    def construct_message():
-        list_marker = "```"
-        result = "This command generates a nickname by putting two words together, in this case it" \
-                 "takes one verb and one noun and concatenates them to create something that " \
-                 "may or may not resemble the type of nicknames used by Korean StarCraft players."
-        return list_marker+result+list_marker
-    return await bun_bot.say(construct_message())
-
-
-@bun_bot.command(help='Fanfiction search', description='Basic AO3 search function, fetches random result'
-                                                       'from the first page.', aliases=["ao3", "fanfiction"])
-async def fic(*query):
-    search_url = "http://archiveofourown.org/works/search?utf8=✓&work_search[query]="
-    link_xpath = '//*[@class="work blurb group"]'
-    full_query = search_url + aooo_conform('+'.join(query))
-    page = requests.get(full_query)
-    page_tree = html.fromstring(page.content)
-    elements = page_tree.xpath(link_xpath)
-    site_url = 'http://archiveofourown.org'
-    results = []
-    for element in elements:
-        link = element.xpath('div/h4/a[1]')[0]
-        href = link.get('href')
-        title = link.text_content()
-        summary = element.xpath('blockquote/p/text()')
-        if summary:
-            summary = '\n'.join([str(x) for x in summary])
-        else:
-            summary = "No summary."
-        tags = element.xpath('ul/li/a[1][not(class="warnings")]')
-        taglist = []
-        for tag in tags:
-            taglist.append(tag.text_content())
-        results.append({
-            "title": title,
-            "link": site_url + href,
-            "summary": summary,
-            "tags": ', '.join([str(x) for x in taglist])
-        })
-    if results:
-        selected = results[randrange(0, len(results))]
-        list_marker = "```"
-        info = selected["title"]+": "+selected["link"]+"\n"\
-            + list_marker+selected["tags"]+"\n\n"+selected["summary"]+list_marker
-        return await bun_bot.say(info)
-    else:
-        return await bun_bot.say("No result.")
-
-
-@bun_bot.command(help='Returns the top result from YouTube', description='Searches youtube for a term'
-                                                                         'and returns the top result.',
-                 aliases=["youtube", "video"])
-async def yt(*query):
-    await bun_bot.say(youtube.search(query))
-
-
-@bun_bot.command(help="Number of Jenson rips", description="The number of times Jenson has said 'rip' since this "
-                                                           "command was implemented.",
-                 aliases=["ripcounter", "rip"], pass_context=True)
-async def ripcount(ctx):
-    if ctx.message.server.id == "321067467243782144":
-        with open(DATA_FILE, 'r') as f:
-            data = json.load(f)
-            count = data.get("rip", 0)
-            user = find_member(bun_bot, "133237258668081152")
-        return await bun_bot.say("{0} has said 'rip' {1} times".format(user.display_name, str(count)))
-    else:
-        return await bun_bot.say("This command is not yet set up for this server.")
-
-
-@bun_bot.command(hidden=True)
-@commands.check(is_mommy)
-async def change_bot_name(name):
-    await bun_bot.change_nickname(bun_bot.user, name)
 
 
 @bun_bot.command(hidden=True)
@@ -319,6 +203,7 @@ if __name__ == "__main__":
             print('Failed to load extension {}\n{}'.format(extension, exc))
 
     log = setup_logging()
-    bun_bot.run(TOKEN)
+    init_vars()
+    bun_bot.run(bun_bot.token)
     end_logging(log)
 

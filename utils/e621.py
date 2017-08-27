@@ -1,4 +1,4 @@
-from random import randrange
+from random import choice
 from lxml import html
 
 import json
@@ -37,7 +37,7 @@ def post(query):
     }
     r = requests.get("https://e621.net/post/index.json", params=payload)
     body = json.loads(r.text)
-    return body[randrange(0, len(body))]["file_url"]
+    return choice(body)["file_url"]
 
 
 def search(query):
@@ -55,6 +55,6 @@ def search(query):
         image = preview.replace('/preview', '')
         results.append(image)
     if results:
-        return results[randrange(0, len(results))]
+        return choice(results)
     else:
         return "No result."
