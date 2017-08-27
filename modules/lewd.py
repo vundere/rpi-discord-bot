@@ -66,6 +66,7 @@ class Lewd:
                       pass_context=True)
     @commands.check(lewd_allowed)
     async def phub(self, ctx, num=1):
+        # TODO maybe add an option to return links?
         def get_title():
             page = requests.get(self.url)
             page_tree = html.fromstring(page.content)
@@ -105,6 +106,10 @@ class Lewd:
     @commands.command(pass_context=True, hidden=True)
     @commands.check(is_mommy)
     async def snag(self, ctx, n=1):
+        """
+        This deletes the command message and saves the last n images posted to a channel.
+        In lewds because it was created to archive some tasty lewd spam, but should maybe be moved out of here.
+        """
         def is_origin(context, cand):
             return context.message.channel == cand.channel
 
@@ -142,6 +147,11 @@ class Lewd:
     @commands.command(hidden=True)
     @commands.check(is_mommy)
     async def tumblr_test(self, *query):
+        """
+        This searches tumblr using selenium
+        NOTE TO SELF: selenium not configured on rpi, don't use this there until that's sorted.
+        Could safely be deleted, but it's nice having it around just in case.
+        """
         return await self.bot.say(tumblr_search.scrape_js_load('+'.join(query)))
 
     @commands.command(help='e621 search', description='Searches e621, filters bad terms from query but not'

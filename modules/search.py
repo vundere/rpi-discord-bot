@@ -36,12 +36,10 @@ class Search:
 
         videos = []
         hidden_videos = []
-        n = 0
+        n = 0  # variable for list numbering
         for result in search_response.get("items", []):
             if result["id"]["kind"] == "youtube#video":
                 n += 1
-                # videos.append("%s (%s)" % (result["snippet"]["title"],
-                #                            result["id"]["videoId"]))
                 videos.append("{0}. {1}".format(n, result["snippet"]["title"]))
                 hidden_videos.append("https://www.youtube.com/watch?v={0}".format(result["id"]["videoId"]))
 
@@ -52,7 +50,6 @@ class Search:
                 result = result + "{}\n"
             result = list_format.format(result)
             return {"select": result.format(*videos), "hidden": hidden_videos}
-            # return videos[0]
         except HttpError as e:
             print("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))
             return "An error occurred."
@@ -100,6 +97,7 @@ class Search:
                                                                               'and returns the top result.',
                       aliases=["youtube", "video"], pass_context=True)
     async def yt(self, ctx, *query):
+        # TODO selector to select desired video from list of results
         video = self.youtube_search(query)["hidden"][0]
         await self.bot.say(video)
 

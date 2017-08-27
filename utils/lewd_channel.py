@@ -1,10 +1,8 @@
-"""
-Putting this functionality here just makes the main file a little cleaner.
-That's really all there is to this.
-The bot doesn't need a specific list of lewd channels currently, so specifying this is just future-proofing."""
 import json
 
 CONF_FILE = 'cfg/bot_config.json'
+
+# TODO see about merging this file into another
 
 
 def push(server, channel):

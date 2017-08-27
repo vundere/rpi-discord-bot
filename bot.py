@@ -58,8 +58,10 @@ def is_mommy(ctx):
 
 
 def setup_logging():
-    discord_logger = logging.getLogger('discord')
-    discord_logger.setLevel(logging.CRITICAL)
+    # discord_logger = logging.getLogger('discord')
+    # discord_logger.setLevel(logging.CRITICAL)
+    # dunno if these are needed, so commented out for now to see.
+
     log = logging.getLogger()
     log.setLevel(logging.INFO)
     handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
