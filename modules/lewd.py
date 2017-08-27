@@ -12,7 +12,7 @@ from utils import lewd_channel, file_tools, tumblr_search, e621
 from random import randint
 from bot import is_mommy
 
-CONF_FILE = 'bot_config.json'
+CONF_FILE = 'cfg/bot_config.json'
 
 
 def lewd_allowed(ctx):

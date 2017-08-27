@@ -6,7 +6,7 @@ from random import randint, randrange
 from os import listdir
 from pathlib import Path
 
-CONF_FILE = 'bot_config.json'
+CONF_FILE = 'cfg/bot_config.json'
 
 with open(CONF_FILE, 'r') as conf:
     file = json.load(conf)

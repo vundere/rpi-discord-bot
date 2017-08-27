@@ -3,7 +3,6 @@
 import json
 import re
 import traceback
-
 import requests
 import discord
 import logging
@@ -26,7 +25,7 @@ with open(CONF_FILE, 'r') as conf:
     TOKEN = file["token"]
 
 HANJO = False  # Defaulting this to True is not that smart.
-startup_extensions = ["cmd.lewd", "cmd.memes", "cmd.community"]
+startup_extensions = ["modules.lewd", "modules.memes", "modules.community"]
 cat_words = ['cat', 'cats', 'kitty', 'kitties', 'kitten', 'kittens']
 cat_reacts = ['nyaaa~', ":3", "(ↀДↀ)", "(๑ↀᆺↀ๑)✧", "ლ(=ↀωↀ=)ლ", "～((Φ◇Φ)‡", "(=^-ω-^=)", "(^･ω･^=)~"]
 
@@ -60,6 +59,11 @@ def find_word(message, words):
             return True
     return False
 
+
+def find_member(self, member_id: str):
+    return discord.utils.get(self.get_all_members(), id=member_id)
+
+
 async def react_with_hanzo(message, p):
     if message.channel.server.name == "Friend Team":
         hanzo = next((emoji for emoji in bun_bot.get_all_emojis() if emoji.name == 'hanzo'), None)
@@ -78,7 +82,7 @@ async def react_cats(message):
 
 
 async def wordcounter(message):
-    if str(message.author) == "Father Jenson#4100":
+    if str(message.author.id) == "133237258668081152":
         if message.content == "Rip" or message.content == "rip":
             with open(DATA_FILE, 'r+') as f:
                 data = json.load(f)
@@ -270,12 +274,16 @@ async def yt(*query):
 
 @bun_bot.command(help="Number of Jenson rips", description="The number of times Jenson has said 'rip' since this "
                                                            "command was implemented.",
-                 aliases=["ripcounter", "rip"])
-async def ripcount():
-    with open(DATA_FILE, 'r') as f:
-        data = json.load(f)
-        count = data.get("rip", 0)
-    return await bun_bot.say("Current 'rip' count: " + str(count))
+                 aliases=["ripcounter", "rip"], pass_context=True)
+async def ripcount(ctx):
+    if ctx.message.server.id == "321067467243782144":
+        with open(DATA_FILE, 'r') as f:
+            data = json.load(f)
+            count = data.get("rip", 0)
+            user = find_member(bun_bot, "133237258668081152")
+        return await bun_bot.say("{0} has said 'rip' {1} times".format(user.display_name, str(count)))
+    else:
+        return await bun_bot.say("This command is not yet set up for this server.")
 
 
 @bun_bot.command(hidden=True)
