@@ -21,7 +21,6 @@ HANJO = False  # Defaulting this to True is not that smart.
 startup_extensions = [
     "modules.lewd",
     "modules.memes",
-    "modules.community",
     "modules.search",
     "modules.injokes"
 ]
