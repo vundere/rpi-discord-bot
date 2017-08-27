@@ -227,3 +227,5 @@ lewdstore/
 bot_data.json
 tumblr_data.json
 cfg/
+.gitattributes
+.gitignore
