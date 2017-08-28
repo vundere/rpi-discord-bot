@@ -1,3 +1,7 @@
+"""
+File that contains utility functions that don't interact with external files.
+"""
+
 import re
 import discord
 

@@ -1,4 +1,6 @@
-"""Tools to handle image downloading, getting data from external files etc."""
+"""
+File that contains utility functions that interact with files.
+"""
 import requests
 import os
 import json

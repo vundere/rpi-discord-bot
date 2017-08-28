@@ -225,7 +225,7 @@ async def unload(extension_name):
     await bun_bot.say("{} unloaded.".format(extension_name))
 
 
-if __name__ == "__main__":
+def run_bot():
     for extension in startup_extensions:
         try:
             bun_bot.load_extension(extension)
@@ -237,4 +237,7 @@ if __name__ == "__main__":
     init_vars()
     bun_bot.run(bun_bot.token)
     end_logging(log)
+
+if __name__ == "__main__":
+    run_bot()
 

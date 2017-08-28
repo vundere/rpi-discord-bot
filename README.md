@@ -12,3 +12,6 @@ One day I might write a proper readme, not that anyone'll ever read it, but so I
 
 Not really meant for anyone else to use, so right now there are no example settings or anything.
 If you for whatever reason want to use this bot, it shouldn't be too hard to figure out.
+
+There will be a billion commits since I make a billion small changes and use github to sync 
+between machines.
