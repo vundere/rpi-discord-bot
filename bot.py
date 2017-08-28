@@ -51,6 +51,8 @@ def init_vars():
         bun_bot.yt_api_key = file["youtube_api_key"]
         bun_bot.mommy = file["mommy"]
         bun_bot.data_file = 'bot_data.json'
+        bun_bot.tumblr_data = 'cfg/tumblr_data.json'
+        bun_bot.cfg_file = CONF_FILE
 
 
 def is_mommy(ctx):
@@ -65,6 +67,8 @@ def setup_logging():
     log = logging.getLogger()
     log.setLevel(logging.INFO)
     handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
+    fmt = logging.Formatter('[%(asctime)s] :%(levelname)s: %(message)s', datefmt='%H:%M:%S')
+    handler.setFormatter(fmt)
     log.addHandler(handler)
     return log
 
@@ -82,14 +86,14 @@ async def react_with_hanzo(message, p):
         if HANJO and hanzo:
             await bun_bot.add_reaction(message, hanzo)
         elif hanzo and random() < p and not message.author == bun_bot.user:
-            log.info('{0.timestamp}: Hanzo react triggered in #{0.channel.name} ({0.server.name})'.format(message))
+            log.info('Hanzo react triggered in #{0.channel.name} ({0.server.name})'.format(message))
             await bun_bot.add_reaction(message, hanzo)
 
 
 async def react_cats(message):
     has_cat_word = tools.find_word(message.content, cat_words)
     if has_cat_word and randint(0, 10) < 2 and not message.author == bun_bot.user:
-        log.info('{0.timestamp}: Cat react triggered in #{0.channel.name} ({0.server.name})'.format(message))
+        log.info('Cat react triggered in #{0.channel.name} ({0.server.name})'.format(message))
         await bun_bot.send_message(message.channel, choice(cat_reacts))
 
 
@@ -112,7 +116,7 @@ async def on_command(command, ctx):
     message = ctx.message
 
     destination = '#{0.channel.name} ({0.server.name})'.format(message)
-    log.info('{0.timestamp}: {0.author.name} in {1}: {0.content}'.format(message, destination))
+    log.info('{0.author.name} in {1}: {0.content}'.format(message, destination))
 
 
 @bun_bot.event
@@ -128,7 +132,7 @@ async def on_command_error(exception, context):
         return
 
     destination = '#{0.channel.name} ({0.server.name})'.format(context.message)
-    log.info('{0.timestamp}: {0.author.name} in {1}: Attempted to use invalid command {0.content}'
+    log.info('{0.author.name} in {1}: Attempted to use invalid command {0.content}'
              .format(context.message, destination))
 
     print('Ignoring exception in command {}'.format(context.command), file=sys.stderr)
@@ -225,19 +229,20 @@ async def unload(extension_name):
     await bun_bot.say("{} unloaded.".format(extension_name))
 
 
-def run_bot():
+if __name__ == "__main__":
     for extension in startup_extensions:
         try:
             bun_bot.load_extension(extension)
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))
-
     log = setup_logging()
-    init_vars()
-    bun_bot.run(bun_bot.token)
+    try:
+        init_vars()
+        bun_bot.run(bun_bot.token)
+        log.info('Bot stopping.')
+    except Exception as e:
+        exc = '{}: {}'.format(type(e).__name__, e)
+        log.info('Bot crashed, extension information: \n{}'.format(exc))
     end_logging(log)
-
-if __name__ == "__main__":
-    run_bot()
 

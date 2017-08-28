@@ -1,10 +1,4 @@
 """
-Starts bot for now.
+does nothing
 """
 
-# TODO maybe init bot here, move all commands to cogs
-
-import bot
-
-if __name__ == "__main__":
-    bot.run_bot()
