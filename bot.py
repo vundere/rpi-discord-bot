@@ -215,7 +215,7 @@ async def korean():
 @commands.check(is_mommy)
 async def load(extension_name):
     try:
-        bun_bot.load_extension(extension_name)
+        bun_bot.load_extension('modules.{}'.format(extension_name))
     except (AttributeError, ImportError) as e:
         await bun_bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
         return
@@ -225,8 +225,20 @@ async def load(extension_name):
 @bun_bot.command(hidden=True)
 @commands.check(is_mommy)
 async def unload(extension_name):
-    bun_bot.unload_extension(extension_name)
+    bun_bot.unload_extension('modules.{}'.format(extension_name))
     await bun_bot.say("{} unloaded.".format(extension_name))
+
+
+@bun_bot.command(hidden=True)
+@commands.check(is_mommy)
+async def reload(extension_name):
+    try:
+        bun_bot.unload_extension('modules.{}'.format(extension_name))
+        bun_bot.load_extension('modules.{}'.format(extension_name))
+        await bun_bot.say('{} reloaded.'.format(extension_name))
+    except (AttributeError, ImportError) as e:
+        await bun_bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+        return
 
 
 if __name__ == "__main__":

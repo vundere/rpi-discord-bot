@@ -67,13 +67,18 @@ class Lewd:
     @commands.check(lewd_allowed)
     async def phub(self, ctx, num=1):
         # TODO maybe add an option to return links?
+
         def get_title():
             page = requests.get(self.url)
+            url = page.url
             page_tree = html.fromstring(page.content)
             page_title = page_tree.findtext(self.xpath)
             if page_title:
                 page_title = page_title[0:-14]  # Removes site url from title
-                return page_title
+                if num == 1:
+                    return "{0} - <{1}>".format(page_title, url)
+                else:
+                    return "{}".format(page_title)
             else:
                 return "There was a problem fetching title."
 
