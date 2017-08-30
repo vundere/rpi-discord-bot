@@ -15,6 +15,7 @@ from discord.ext.commands import Bot
 
 CONF_FILE = 'cfg/bot_config.json'
 HANJO = False  # Defaulting this to True is not that smart.
+hanzo = None
 
 startup_extensions = [
     "modules.lewd",
@@ -80,9 +81,23 @@ def end_logging(log):
         log.removeHandler(hdlr)
 
 
+def set_hanzo():
+    """
+    sets hanzo emote on bot init to limit excessive rate use
+    currently hardcoded to only work on one server, but this could be simplified
+    """
+    global hanzo
+    try:
+        for server in bun_bot.servers:
+            if server.id == "261561747620626443":
+                hanzo = next((emoji for emoji in bun_bot.get_all_emojis() if emoji.name == 'hanzo'), None)
+
+    except AttributeError as ae:
+        print("Error finding emote \n {}".format(ae))
+
+
 async def react_with_hanzo(message, p):
-    if message.channel.server.name == "Friend Team":
-        hanzo = next((emoji for emoji in bun_bot.get_all_emojis() if emoji.name == 'hanzo'), None)
+    if message.channel.server.id == "261561747620626443":
         if HANJO and hanzo:
             await bun_bot.add_reaction(message, hanzo)
         elif hanzo and random() < p and not message.author == bun_bot.user:
@@ -150,6 +165,7 @@ async def on_message(message):
 @bun_bot.event
 async def on_ready():
     await bun_bot.change_presence(game=discord.Game(name='commands: !bb.help'))
+    await set_hanzo()
     print('Logged in as')
     print(bun_bot.user.name)
     print(bun_bot.user.id)
