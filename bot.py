@@ -156,7 +156,7 @@ async def on_command_error(exception, context):
 
 @bun_bot.event
 async def on_message(message):
-    await react_with_hanzo(message, 0.03)
+    # await react_with_hanzo(message, 0.03)
     await react_cats(message)
     await wordcounter(message)
     await bun_bot.process_commands(message)
@@ -165,7 +165,7 @@ async def on_message(message):
 @bun_bot.event
 async def on_ready():
     await bun_bot.change_presence(game=discord.Game(name='commands: !bb.help'))
-    await set_hanzo()
+    set_hanzo()
     print('Logged in as')
     print(bun_bot.user.name)
     print(bun_bot.user.id)
@@ -217,7 +217,9 @@ async def fullhanjo():
         HANJO = True
 
 
-@bun_bot.command(help='Randomly generated korean nickname')
+@bun_bot.command(help='Randomly generated korean nickname', description='Combines a noun and a verb in the hopes '
+                                                                        'of creating something that resembles a '
+                                                                        'Korean StarCraft nickname.')
 async def korean():
     master = file_tools.init_korean()
     nouns = master["nouns"]
