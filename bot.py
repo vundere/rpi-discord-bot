@@ -135,6 +135,12 @@ async def on_command(command, ctx):
 
 
 @bun_bot.event
+async def on_command_completion(command, ctx):
+    message = ctx.message
+    log.info('Bot responded with {0.content}'.format(message))
+
+
+@bun_bot.event
 async def on_command_error(exception, context):
     """
     Slightly modified error handler, to allow for logging of when and where
