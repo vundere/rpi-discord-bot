@@ -29,7 +29,9 @@ cat_words = [
     'kitty',
     'kitties',
     'kitten',
-    'kittens'
+    'kittens',
+    'cato',
+    'cattos'
 ]
 cat_reacts = [
     'nyaaa~',
@@ -40,6 +42,24 @@ cat_reacts = [
     "～((Φ◇Φ)‡",
     "(=^-ω-^=)",
     "(^･ω･^=)~"
+]
+dog_words = [
+    'dog',
+    'dogs',
+    'puppy',
+    'puppies',
+    'doggo',
+    'doggos'
+]
+dog_reacts = [
+    'woof',
+    '(❍ᴥ❍ʋ)',
+    '੯ੁૂ‧̀͡u',
+    'ฅ^•ﻌ•^ฅ',
+    '₍ᐢ•ﻌ•ᐢ₎*･ﾟ｡',
+    '(υ◉ω◉υ)',
+    '໒( ◉ ᴥ ◉ )७',
+    '▐ ☯ ᴥ ☯ ▐'
 ]
 
 bun_bot = Bot(command_prefix="!bb.")
@@ -105,11 +125,15 @@ async def react_with_hanzo(message, p):
             await bun_bot.add_reaction(message, hanzo)
 
 
-async def react_cats(message):
+async def react_word(message):
     has_cat_word = tools.find_word(message.content, cat_words)
+    has_dog_word = tools.find_word(message.content, dog_words)
     if has_cat_word and randint(0, 10) < 2 and not message.author == bun_bot.user:
         log.info('Cat react triggered in #{0.channel.name} ({0.server.name})'.format(message))
         await bun_bot.send_message(message.channel, choice(cat_reacts))
+    if has_dog_word and randint(0, 10) < 2 and not message.author == bun_bot.user:
+        log.info('Dog react triggered in #{0.channel.name} ({0.server.name})'.format(message))
+        await bun_bot.send_message(message.channel, choice(dog_reacts))
 
 
 async def wordcounter(message):
@@ -163,7 +187,7 @@ async def on_command_error(exception, context):
 @bun_bot.event
 async def on_message(message):
     # await react_with_hanzo(message, 0.03)
-    await react_cats(message)
+    await react_word(message)
     await wordcounter(message)
     await bun_bot.process_commands(message)
 
