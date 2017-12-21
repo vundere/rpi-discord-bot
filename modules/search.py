@@ -1,15 +1,25 @@
 import requests
+import logging
 
 from utils import tools
+from utils.file_tools import load_ao3_cats
 from discord.ext import commands
 from lxml import html
-from random import choice
+from random import choice, randint
+from modules.lewd import lewd_allowed
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
+log = logging.getLogger('bun_bot')
+
+bad_words = [
+        'loli',
+        'shota',
+        'underage'
+    ]
 
 
 class Search:
@@ -55,40 +65,66 @@ class Search:
             return "An error occurred."
 
     @commands.command(help='Fanfiction search', description='Basic AO3 search function, fetches random result '
-                                                            'from the first page.', aliases=["ao3", "fanfiction"])
-    async def fic(self, *query):
+                                                            'from the first page.', aliases=["ao3", "fanfiction"],
+                                                            pass_context=True)
+    async def fic(self, ctx, *query):
+
+        if ctx.message.server.id == '261561747620626443' and not lewd_allowed(ctx):
+            # protecting the delicate sensibilities
+            return await self.bot.say('No.')
+
+        if not query:
+            log.info('No query, picking random query.')
+            # query = tools.get_random_words(randint(1, 3))
+            query = load_ao3_cats()
+            await self.bot.say('Searching for "{}"...'.format(query))
+
+        log.info('AO3 query: {}'.format(query))
+
         search_url = "http://archiveofourown.org/works/search?utf8=✓&work_search[query]="
         link_xpath = '//*[@class="work blurb group"]'
-        full_query = search_url + tools.aooo_conform('+'.join(query))
+        full_query = search_url + tools.aooo_conform(query)
+        log.info('Query link: {}'.format(full_query))
         page = requests.get(full_query)
         page_tree = html.fromstring(page.content)
         elements = page_tree.xpath(link_xpath)
         site_url = 'http://archiveofourown.org'
         results = []
+
         for element in elements:
             link = element.xpath('div/h4/a[1]')[0]
+            summary = element.xpath('blockquote/p/text()')
+            tags = element.xpath('ul/li/a[1][not(class="warnings")]')
+            fandoms = element.xpath('div/h5/a')
+
             href = link.get('href')
             title = link.text_content()
-            summary = element.xpath('blockquote/p/text()')
+            taglist = ([tag.text_content() for tag in tags])
+            fandlist = ([f.text_content() for f in fandoms])
+
             if summary:
                 summary = '\n'.join([str(x) for x in summary])
             else:
                 summary = "No summary."
-            tags = element.xpath('ul/li/a[1][not(class="warnings")]')
-            taglist = []
-            for tag in tags:
-                taglist.append(tag.text_content())
-            results.append({
-                "title": title,
-                "link": site_url + href,
-                "summary": summary,
-                "tags": ', '.join([str(x) for x in taglist])
-            })
+
+            if not tools.find_word(' '.join([str(x) for x in taglist]), bad_words):  # Skips unwanted results
+                results.append({
+                    "title": title,
+                    "link": site_url + href,
+                    "fandoms": ', '.join([str(x) for x in fandlist]),
+                    "summary": summary,
+                    "tags": ', '.join([str(x) for x in taglist])
+                })
+            else:
+                log.info('Result skipped\n\t\t\ttitle: {}\n\t\t\turl: {}'.format(title, site_url + href))
+
         if results:
+            log.info('Fics retrieved: {}'.format(len(results)))
             selected = choice(results)
             list_marker = "```"
             info = selected["title"]+": "+selected["link"]+"\n"\
-                + list_marker+selected["tags"]+"\n\n"+selected["summary"]+list_marker
+                + list_marker+selected['fandoms']+'\n\n'+selected["tags"]+"\n\n"+selected["summary"]+list_marker
+
             return await self.bot.say(info)
         else:
             return await self.bot.say("No result.")

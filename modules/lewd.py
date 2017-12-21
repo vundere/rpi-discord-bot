@@ -109,12 +109,12 @@ class Lewd:
             return await self.bot.upload(file_tools.pomf_get())
 
     @commands.command(pass_context=True, hidden=True)
-    @commands.check(is_mommy)
     async def snag(self, ctx, n=1):
         """
         This deletes the command message and saves the last n images posted to a channel.
         In lewds because it was created to archive some tasty lewd spam, but should maybe be moved out of here.
         """
+
         def is_origin(context, cand):
             return context.message.channel == cand.channel
 
@@ -150,7 +150,6 @@ class Lewd:
         await self.bot.say(result)
 
     @commands.command(hidden=True)
-    @commands.check(is_mommy)
     async def tumblr_test(self, *query):
         """
         This searches tumblr using selenium
@@ -159,8 +158,7 @@ class Lewd:
         """
         return await self.bot.say(tumblr_search.scrape_js_load('+'.join(query)))
 
-    @commands.command(help='e621 search', description='Searches e621, filters bad terms from query but not'
-                                                      'from results, so please report things like loli results')
+    @commands.command(help='e621 search', description='Searches e621, has a filter to prevent returning loli etc.')
     @commands.check(lewd_allowed)
     async def e621(self, *query):
         await self.bot.say(e621.post(query))

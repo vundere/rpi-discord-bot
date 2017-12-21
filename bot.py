@@ -49,7 +49,9 @@ dog_words = [
     'puppy',
     'puppies',
     'doggo',
-    'doggos'
+    'doggos',
+    'pupper',
+    'puppers'
 ]
 dog_reacts = [
     'woof',
@@ -85,9 +87,9 @@ def setup_logging():
     # discord_logger.setLevel(logging.CRITICAL)
     # dunno if these are needed, so commented out for now to see.
 
-    log = logging.getLogger()
+    log = logging.getLogger('bun_bot')
     log.setLevel(logging.INFO)
-    handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
+    handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='a')
     fmt = logging.Formatter('[%(asctime)s] :%(levelname)s: %(message)s', datefmt='%H:%M:%S')
     handler.setFormatter(fmt)
     log.addHandler(handler)
@@ -150,6 +152,14 @@ async def wordcounter(message):
                 f.truncate()
 
 
+async def boop(message):
+    if not message.author == bun_bot.user:
+        if message.content.lower() == 'beep':
+            return await bun_bot.send_message(message.channel, 'boop')
+        if message.content.lower() == 'boop':
+            return await bun_bot.send_message(message.channel, 'beep')
+
+
 @bun_bot.event
 async def on_command(command, ctx):
     message = ctx.message
@@ -160,8 +170,9 @@ async def on_command(command, ctx):
 
 @bun_bot.event
 async def on_command_completion(command, ctx):
-    message = ctx.message
-    log.info('Bot responded with {0.content}'.format(message))
+    # message = ctx.message
+    # log.info('Bot responded with {0.content}'.format(message))
+    pass  # find way to easily log bot response
 
 
 @bun_bot.event
@@ -189,6 +200,7 @@ async def on_message(message):
     # await react_with_hanzo(message, 0.03)
     await react_word(message)
     await wordcounter(message)
+    await boop(message)
     await bun_bot.process_commands(message)
 
 
@@ -207,8 +219,8 @@ async def fox(ctx):
     """
     This just PMs an unsorted list of every command the bot has, since many of them are hidden.
     """
-    user = ctx.message.author.id
-    if user == '133373976008327168' or is_mommy(ctx):  # checks for fox
+    user = ctx.message.author
+    if user.id == '133373976008327168' or is_mommy(ctx):  # checks for fox
         command_list = []
         list_marker = "```"
         result = ""
@@ -259,6 +271,16 @@ async def korean():
     return await bun_bot.say(randnoun+randverb)
 
 
+@bun_bot.command(help='Rolls a dice of X sides.')
+async def d(x):
+    roll = randint(1, int(x))
+    await bun_bot.say('Rolled {}'.format(roll))
+    if roll == x:
+        await bun_bot.say('Critical hit!')
+    elif roll == 1:
+        await bun_bot.say('Critical fail...')
+
+
 @bun_bot.command(hidden=True)
 @commands.check(is_mommy)
 async def load(extension_name):
@@ -290,19 +312,19 @@ async def reload(extension_name):
 
 
 if __name__ == "__main__":
-    for extension in startup_extensions:
-        try:
-            bun_bot.load_extension(extension)
-        except Exception as e:
-            exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))
-    log = setup_logging()
     try:
         init_vars()
+        for extension in startup_extensions:
+            try:
+                bun_bot.load_extension(extension)
+            except Exception as e:
+                exc = '{}: {}'.format(type(e).__name__, e)
+                print('Failed to load extension {}\n{}'.format(extension, exc))
+        log = setup_logging()
         bun_bot.run(bun_bot.token)
         log.info('Bot stopping.')
     except Exception as e:
         exc = '{}: {}'.format(type(e).__name__, e)
-        log.info('Bot crashed, extension information: \n{}'.format(exc))
+        log.info('Bot crashed with exception: \n{}'.format(exc))
     end_logging(log)
 

@@ -148,4 +148,14 @@ def init_korean():
     }
     return result
 
+
+def load_ao3_cats():
+    with open('utils/result.json', 'r') as f:
+        data = json.load(f)
+        cats = []
+        for k, v in data.items():
+            for i in v:
+                cats.append(i)
+    return choice(cats)
+
 # TODO create function for loading data from config that can be used across all cogs and see if that's more efficient

@@ -36,8 +36,8 @@ def post(query):
         }
     }
     r = requests.get("https://e621.net/post/index.json", params=payload)
-    body = json.loads(r.text)
-    return choice(body)["file_url"]
+    pruned = ([x['file_url'] for x in json.loads(r.text) if (w not in x['tags'] for w in bad_words)])
+    return choice(pruned)
 
 
 def search(query):
@@ -49,11 +49,12 @@ def search(query):
     page = requests.get(full_search)
     tree = html.fromstring(page.content)
     elements = tree.xpath(xpath)
-    results = []
-    for element in elements:
-        preview = element.get("src")
-        image = preview.replace('/preview', '')
-        results.append(image)
+    # results = []
+    results = ([element.get('src').replace('/preview', '') for element in elements])
+    # for element in elements:
+    #     preview = element.get("src")
+    #     image = preview.replace('/preview', '')
+    #     results.append(image)
     if results:
         return choice(results)
     else:
