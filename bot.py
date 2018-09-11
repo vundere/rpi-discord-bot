@@ -7,11 +7,14 @@ import requests
 import discord
 import logging
 import sys
+import os
 
+from time import sleep
 from random import randint, random, choice
 from utils import file_tools, tools
 from discord.ext import commands
 from discord.ext.commands import Bot
+from modules.activity_monitor import update_entry
 
 CONF_FILE = 'cfg/bot_config.json'
 HANJO = False  # Defaulting this to True is not that smart.
@@ -21,7 +24,8 @@ startup_extensions = [
     "modules.lewd",
     "modules.memes",
     "modules.search",
-    "modules.injokes"
+    "modules.activity_monitor",
+    "modules.ranks"
 ]
 cat_words = [
     'cat',
@@ -83,9 +87,8 @@ def is_mommy(ctx):
 
 
 def setup_logging():
-    # discord_logger = logging.getLogger('discord')
-    # discord_logger.setLevel(logging.CRITICAL)
-    # dunno if these are needed, so commented out for now to see.
+    discord_logger = logging.getLogger('discord')
+    discord_logger.setLevel(logging.CRITICAL)
 
     log = logging.getLogger('bun_bot')
     log.setLevel(logging.INFO)
@@ -160,6 +163,16 @@ async def boop(message):
             return await bun_bot.send_message(message.channel, 'beep')
 
 
+async def someone(message):
+    channel = message.channel
+    server = channel.server
+
+    if message.content.lower() == '@someone':
+        target = choice(list(server.members))
+        msg = await bun_bot.send_message(channel, target.mention)
+        await bun_bot.delete_message(msg)
+
+
 @bun_bot.event
 async def on_command(command, ctx):
     message = ctx.message
@@ -201,6 +214,8 @@ async def on_message(message):
     await react_word(message)
     await wordcounter(message)
     await boop(message)
+    update_entry(message)
+    await someone(message)
     await bun_bot.process_commands(message)
 
 
@@ -304,6 +319,7 @@ async def unload(extension_name):
 async def reload(extension_name):
     try:
         bun_bot.unload_extension('modules.{}'.format(extension_name))
+        sleep(0.4)
         bun_bot.load_extension('modules.{}'.format(extension_name))
         await bun_bot.say('{} reloaded.'.format(extension_name))
     except (AttributeError, ImportError) as e:
@@ -312,6 +328,7 @@ async def reload(extension_name):
 
 
 if __name__ == "__main__":
+    log = setup_logging()
     try:
         init_vars()
         for extension in startup_extensions:
@@ -320,11 +337,19 @@ if __name__ == "__main__":
             except Exception as e:
                 exc = '{}: {}'.format(type(e).__name__, e)
                 print('Failed to load extension {}\n{}'.format(extension, exc))
-        log = setup_logging()
+
+        with open('bunbot.pid', 'w') as f:
+            f.write(str(os.getpid()))
+        log.info('PID file written.')
+
         bun_bot.run(bun_bot.token)
+
         log.info('Bot stopping.')
     except Exception as e:
         exc = '{}: {}'.format(type(e).__name__, e)
         log.info('Bot crashed with exception: \n{}'.format(exc))
-    end_logging(log)
+    finally:
+        log.info('Removing PID file.')
+        os.remove('bunbot.pid')
+        end_logging(log)
 

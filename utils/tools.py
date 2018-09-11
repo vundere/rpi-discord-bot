@@ -56,4 +56,16 @@ def get_random_words(n):
         res = [choice(words).decode('utf-8') for x in range(n)]
     return res
 
+
+def convert(message):
+    """
+    Converts units / currency
+
+    NOTE:
+    This was hastily thrown together just to see what it takes to make it work.
+    It might not be very pretty.
+    """
+
+    units_to_look_for = ['F', 'C', 'USD', 'NOK', 'EUR']
+
 # TODO merge tools.py and file_tools.py

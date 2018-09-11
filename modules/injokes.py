@@ -20,16 +20,12 @@ class Injokes:
 
     @commands.command(help="Number of Jenson rips", description="The number of times Jenson has said 'rip' since this "
                                                                 "command was implemented.",
-                      aliases=["ripcounter", "rip"], pass_context=True)
+                      aliases=["ripcounter", "rip"], pass_context=True, hidden=True)
     async def ripcount(self, ctx):
-        if ctx.message.server.id == "321067467243782144":
-            with open(self.bot.data_file, 'r') as f:
-                data = json.load(f)
-                count = data.get("rip", 0)
-                user = tools.find_member(self.bot, "133237258668081152")
-            return await self.bot.say("{0} has said 'rip' {1} times".format(user.display_name, str(count)))
-        else:
-            return await self.bot.say("This command is not yet set up for this server.")
+        with open(self.bot.data_file, 'r') as f:
+            data = json.load(f)
+            count = data.get("rip", 0)
+            return await self.bot.say("Jenson said 'rip' {} times".format(str(count)))
 
 
 def setup(bot):
